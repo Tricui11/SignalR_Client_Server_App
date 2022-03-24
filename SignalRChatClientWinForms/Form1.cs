@@ -9,9 +9,10 @@ namespace SignalRChatClientWinForms
     public partial class Form1 : Form
     {
         HubConnection connection;
+        bool connected;
         public Form1()
         {
-            InitializeComponent();
+            InitializeComponent();            
 
             connection = new HubConnectionBuilder()
                 .WithUrl("http://localhost:53353/chat")
@@ -45,8 +46,10 @@ namespace SignalRChatClientWinForms
                 await connection.StartAsync();
                 await connection.InvokeAsync("AddToGuestGroup", txtBoxUser.Text);
                 listBoxChat.Items.Add("Connection started");
-                btnConnect.Enabled = false;
-                btnSendMessage.Enabled = true;
+                connected = true;
+                btnConnect.Enabled = !connected;
+                txtBoxUser.Enabled = false;
+                btnSendMessage.Enabled = connected && !string.IsNullOrWhiteSpace(txtBoxMessage.Text);
             }
             catch (Exception ex)
             {
@@ -59,6 +62,7 @@ namespace SignalRChatClientWinForms
             try
             {
                 await connection.InvokeAsync("SendMessage", txtBoxMessage.Text, txtBoxUser.Text);
+                txtBoxMessage.Text = string.Empty;
             }
             catch (Exception ex)
             {
@@ -71,7 +75,7 @@ namespace SignalRChatClientWinForms
             e.DrawBackground();
             e.DrawFocusRectangle();
             var color = Color.Black;
-            string itemText = this.listBoxChat.Items[e.Index].ToString();
+            string itemText = listBoxChat.Items[e.Index].ToString();
             if (itemText.EndsWith(" присоединился к чату."))
             {
                 color = Color.Green;
@@ -81,6 +85,16 @@ namespace SignalRChatClientWinForms
                 color = Color.Red;
             }
             e.Graphics.DrawString(itemText, new Font(FontFamily.GenericSansSerif, 8, FontStyle.Bold), new SolidBrush(color), e.Bounds);
+        }
+
+        private void txtBoxUser_TextChanged(object sender, EventArgs e)
+        {
+            btnConnect.Enabled = !string.IsNullOrEmpty(txtBoxUser.Text) && !connected;
+        }
+        
+        private void txtBoxMessage_TextChanged(object sender, EventArgs e)
+        {
+            btnSendMessage.Enabled = connected && !string.IsNullOrWhiteSpace(txtBoxMessage.Text);
         }
     }
 }

@@ -56,6 +56,7 @@ namespace SignalRChatClientWinForms
             this.txtBoxUser.Name = "txtBoxUser";
             this.txtBoxUser.Size = new System.Drawing.Size(396, 38);
             this.txtBoxUser.TabIndex = 5;
+            this.txtBoxUser.TextChanged += txtBoxUser_TextChanged;
             // 
             // listBoxChat
             // 
@@ -78,6 +79,7 @@ namespace SignalRChatClientWinForms
             this.btnConnect.TabIndex = 7;
             this.btnConnect.Text = "Connect";
             this.btnConnect.UseVisualStyleBackColor = true;
+            this.btnConnect.Enabled = false;
             this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
             // 
             // btnSendMessage
@@ -90,6 +92,7 @@ namespace SignalRChatClientWinForms
             this.btnSendMessage.TabIndex = 8;
             this.btnSendMessage.Text = "SendMessage";
             this.btnSendMessage.UseVisualStyleBackColor = true;
+            this.btnSendMessage.Enabled = false;
             this.btnSendMessage.Click += new System.EventHandler(this.btnSendMessage_Click);
             // 
             // lblMessage
@@ -109,6 +112,7 @@ namespace SignalRChatClientWinForms
             this.txtBoxMessage.Name = "txtBoxMessage";
             this.txtBoxMessage.Size = new System.Drawing.Size(396, 39);
             this.txtBoxMessage.TabIndex = 10;
+            this.txtBoxMessage.TextChanged += txtBoxMessage_TextChanged;
             // 
             // Form1
             // 
@@ -128,6 +132,16 @@ namespace SignalRChatClientWinForms
             this.ResumeLayout(false);
             this.PerformLayout();
 
+        }
+
+        private void TxtBoxMessage_TextChanged(object sender, System.EventArgs e)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        private void TxtBoxUser_TextChanged(object sender, System.EventArgs e)
+        {
+            throw new System.NotImplementedException();
         }
 
         #endregion
