@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using SignalRChat.Model;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SignalRChat.Hubs
 {
     public static class UserHandler
     {
-        // ConnectionId, groupName
-        public static Dictionary<string, UserGroup> ConnectedUsers = new Dictionary<string, UserGroup>();
+        public static ICollection<ChatUser> ConnectedUsers = new List<ChatUser>();
+        public static ChatUser FindByConnectionId(string connectionId) => UserHandler.ConnectedUsers.First(x => x.ConnectionId == connectionId);
     }
 }

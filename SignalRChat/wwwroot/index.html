@@ -8,14 +8,14 @@
     <div id="loginBlock">
         Введите логин:<br />
         <input id="userName" type="text" />
-        <input id="loginBtn" type="button" value="Войти" />
+        <input id="loginBtn" type="button" value="Войти" disabled="disabled"/>
     </div><br />
 
     <div id="header"></div><br />
 
     <div id="inputForm">
         <input type="text" id="message" />
-        <input type="button" id="sendBtn" value="Отправить" />
+        <input type="button" id="sendBtn" value="Отправить" disabled="disabled"/>
     </div>
     <div id="chatroom"></div>
 
@@ -26,11 +26,26 @@
     </div>
     <script src="js/signalr/dist/browser/signalr.min.js"></script>
     <script>
+        var loggedIn = false;
+        const loginBtn = document.getElementById("loginBtn");
+        const userName = document.getElementById("userName");
+        const userNameInputDone = function (e) {
+            loginBtn.disabled = loggedIn || userName.value === "";
+            document.getElementById("sendBtn").disabled = message.value === "" || userName.value === "";
+        }
+        userName.addEventListener('input', userNameInputDone);
+        userName.addEventListener('propertychange', userNameInputDone);
+
+        const message = document.getElementById("message");
+        const messageInputDone = function (e) {
+            document.getElementById("sendBtn").disabled = message.value === "" || userName.value === "";
+        }
+        message.addEventListener('input', messageInputDone);
+        message.addEventListener('propertychange', messageInputDone);
+
         const hubConnection = new signalR.HubConnectionBuilder()
             .withUrl("/chat")
             .build();
-
-        let userName = '';
 
         hubConnection.on('ReceiveMessage', function (message, userName) {
             let userNameElem = document.createElement("b");
@@ -44,17 +59,19 @@
             document.getElementById("chatroom").insertBefore(elem, firstElem);
         });
 
-        document.getElementById("loginBtn").addEventListener("click", function (e) {
-            userName = document.getElementById("userName").value;
-            document.getElementById("header").innerHTML = '<h3>Welcome ' + userName + '</h3>';
-            hubConnection.invoke("AddToAdminGroup");
+        loginBtn.addEventListener("click", function (e) {
+            document.getElementById("header").innerHTML = '<h3>Welcome ' + userName.value + '</h3>';
+            loginBtn.disabled = true;
+            userName.disabled = true;
+            loggedIn = true;
+            hubConnection.invoke("AddToAdminGroup", userName.value);
         });
 
-        hubConnection.on('newGuestConnected', function (connectionId) {
+        hubConnection.on('newGuestConnected', function (connectionId, guestName) {
             var users = document.getElementById("users");
             var option = document.createElement("option");
             option.value = connectionId;
-            option.text = connectionId;
+            option.text = guestName;
             users.add(option);
         });
 
@@ -70,12 +87,12 @@
 
         document.getElementById("sendBtn").addEventListener("click", function (e) {
             let message = document.getElementById("message").value;
-            hubConnection.invoke("SendMessage", message, userName);
+            hubConnection.invoke("SendMessage", message, userName.value);
         });
 
         document.getElementById("disconnectBtn").addEventListener("click", function (e) {
             var users = document.getElementById("users");
-            hubConnection.invoke("DisconnectUser", users.options[users.selectedIndex].text);
+            hubConnection.invoke("DisconnectUser", users.options[users.selectedIndex].value);
         });
 
         hubConnection.start();

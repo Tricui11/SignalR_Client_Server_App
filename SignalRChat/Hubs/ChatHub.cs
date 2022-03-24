@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
+using SignalRChat.Model;
 
 namespace SignalRChat.Hubs
 {
@@ -16,32 +17,44 @@ namespace SignalRChat.Hubs
             await Clients.All.SendAsync("ReceiveMessage", message, userName);
         }
 
-        public async Task AddToAdminGroup()
+        public async Task AddToAdminGroup(string adminName)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, UserGroup.Admins.ToString());
-            UserHandler.ConnectedUsers[Context.ConnectionId] = UserGroup.Admins;
+            await AddToGroupAsync(adminName, UserGroup.Admins);
+            await Clients.All.SendAsync("ReceiveMessage", $"{adminName} присоеденился к чату.", "Бот");
         }
 
-        public async Task AddToGuestGroup()
+        public async Task AddToGuestGroup(string guestName)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, UserGroup.Guests.ToString());
-            UserHandler.ConnectedUsers[Context.ConnectionId] = UserGroup.Guests;
-            await Clients.Group("Admins").SendAsync("newGuestConnected", Context.ConnectionId);
+            await AddToGroupAsync(guestName, UserGroup.Guests);
+            await Clients.All.SendAsync("ReceiveMessage", $"{guestName} присоеденился к чату.", "Бот");
+            await Clients.Group(UserGroup.Admins.ToString()).SendAsync("newGuestConnected", Context.ConnectionId, guestName);
+        }
+
+        private async Task AddToGroupAsync(string userName, UserGroup userGroup)
+        {
+            var chatUser = UserHandler.FindByConnectionId(Context.ConnectionId);
+            chatUser.UserGroup = userGroup;
+            chatUser.Name = userName;
+            await Groups.AddToGroupAsync(chatUser.ConnectionId, chatUser.UserGroup.ToString());
         }
 
         public override Task OnConnectedAsync()
         {
-            UserHandler.ConnectedUsers.Add(Context.ConnectionId, UserGroup.None);
+            var newChatUser = new ChatUser() { ConnectionId = Context.ConnectionId , UserGroup = UserGroup.None};
+            UserHandler.ConnectedUsers.Add(newChatUser);
             return base.OnConnectedAsync();
         }
 
         public override Task OnDisconnectedAsync(Exception exception)
         {
-            if (UserHandler.ConnectedUsers[Context.ConnectionId] == UserGroup.Guests)
+            var chatUser = UserHandler.FindByConnectionId(Context.ConnectionId);
+            if (chatUser.UserGroup == UserGroup.Guests)
             {
-                Clients.Group("Admins").SendAsync("guestDisConnected", Context.ConnectionId);
+                Clients.Group(UserGroup.Admins.ToString()).SendAsync("guestDisConnected", Context.ConnectionId);
             }
-            UserHandler.ConnectedUsers.Remove(Context.ConnectionId);
+            Clients.All.SendAsync("ReceiveMessage", $"{chatUser.Name} покинул чат.", "Бот");
+            UserHandler.ConnectedUsers.Remove(chatUser);
+
             return base.OnDisconnectedAsync(exception);
         }
     }

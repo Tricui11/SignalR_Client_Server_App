@@ -1,4 +1,4 @@
-﻿namespace SignalRChat.Hubs
+﻿namespace SignalRChat.Model
 {
     public enum UserGroup
     {
