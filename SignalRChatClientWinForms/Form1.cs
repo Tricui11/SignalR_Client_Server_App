@@ -27,7 +27,8 @@ namespace SignalRChatClientWinForms
         {
             connection.On<string, string>("ReceiveMessage", (message, userName) =>
             {
-                this.listBoxChat.Invoke((MethodInvoker)delegate {
+                this.listBoxChat.Invoke((MethodInvoker)delegate
+                {
                     var newMessage = $"{userName}: {message}";
                     listBoxChat.Items.Add(newMessage);
                 });

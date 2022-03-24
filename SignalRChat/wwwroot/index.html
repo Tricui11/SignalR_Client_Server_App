@@ -47,6 +47,7 @@
         document.getElementById("loginBtn").addEventListener("click", function (e) {
             userName = document.getElementById("userName").value;
             document.getElementById("header").innerHTML = '<h3>Welcome ' + userName + '</h3>';
+            hubConnection.invoke("AddToAdminGroup");
         });
 
         hubConnection.on('newClientConnected', function (connectionId) {
