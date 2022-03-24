@@ -50,10 +50,20 @@
         hubConnection.on('ReceiveMessage', function (message, userName) {
             let userNameElem = document.createElement("b");
             userNameElem.appendChild(document.createTextNode(userName + ': '));
+            let userMessageElem = document.createElement("b");
+            userMessageElem.appendChild(document.createTextNode(message));
+            if (message.endsWith(" присоеденился к чату.")) {
+                userNameElem.style.color = "green";
+                userMessageElem.style.color = "green";
+            }
+            if (message.endsWith(" покинул чат.")) {
+                userNameElem.style.color = "red";
+                userMessageElem.style.color = "red";
+            }
 
             let elem = document.createElement("p");
             elem.appendChild(userNameElem);
-            elem.appendChild(document.createTextNode(message));
+            elem.appendChild(userMessageElem);
 
             var firstElem = document.getElementById("chatroom").firstChild;
             document.getElementById("chatroom").insertBefore(elem, firstElem);

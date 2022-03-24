@@ -1,4 +1,6 @@
-﻿namespace SignalRChatClientWinForms
+﻿using System.Windows.Forms;
+
+namespace SignalRChatClientWinForms
 {
     partial class Form1
     {
@@ -62,6 +64,8 @@
             this.listBoxChat.Location = new System.Drawing.Point(178, 227);
             this.listBoxChat.Name = "listBoxChat";
             this.listBoxChat.Size = new System.Drawing.Size(396, 184);
+            this.listBoxChat.DrawMode = DrawMode.OwnerDrawVariable;
+            this.listBoxChat.DrawItem += new DrawItemEventHandler(listBoxChat_DrawItem);
             this.listBoxChat.TabIndex = 6;
             // 
             // btnConnect

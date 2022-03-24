@@ -27,7 +27,7 @@ namespace SignalRChatClient
         {
             connection.On<string, string>("ReceiveMessage", (message, userName) =>
             {
-                this.Dispatcher.Invoke(() =>
+                Dispatcher.Invoke(() =>
                 {
                    var newMessage = $"{userName}: {message}";
                    messagesList.Items.Add(newMessage);
@@ -36,7 +36,7 @@ namespace SignalRChatClient
 
             connection.On<string>("Disconnect", (userID) =>
             {
-                this.Dispatcher.Invoke(() =>
+                Dispatcher.Invoke(() =>
                 {
                     Application.Current.Shutdown();
                 });

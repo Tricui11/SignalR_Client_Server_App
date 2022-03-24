@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -27,7 +28,7 @@ namespace SignalRChatClientWinForms
         {
             connection.On<string, string>("ReceiveMessage", (message, userName) =>
             {
-                this.listBoxChat.Invoke((MethodInvoker)delegate
+                listBoxChat.Invoke((MethodInvoker)delegate
                 {
                     var newMessage = $"{userName}: {message}";
                     listBoxChat.Items.Add(newMessage);
@@ -36,7 +37,7 @@ namespace SignalRChatClientWinForms
 
             connection.On<string>("Disconnect", (userID) =>
             {
-                this.Invoke((MethodInvoker)delegate { Application.Exit(); });
+                Invoke((MethodInvoker)delegate { Application.Exit(); });
             });
 
             try
@@ -63,6 +64,23 @@ namespace SignalRChatClientWinForms
             {
                 listBoxChat.Items.Add(ex.Message);
             }
+        }
+
+        private void listBoxChat_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            e.DrawBackground();
+            e.DrawFocusRectangle();
+            var color = Color.Black;
+            string itemText = this.listBoxChat.Items[e.Index].ToString();
+            if (itemText.EndsWith(" присоеденился к чату."))
+            {
+                color = Color.Green;
+            }
+            else if (itemText.EndsWith(" покинул чат."))
+            {
+                color = Color.Red;
+            }
+            e.Graphics.DrawString(itemText, new Font(FontFamily.GenericSansSerif, 8, FontStyle.Bold), new SolidBrush(color), e.Bounds);
         }
     }
 }
