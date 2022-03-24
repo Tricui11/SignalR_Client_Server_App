@@ -5,6 +5,6 @@ namespace SignalRChat.Hubs
     public static class UserHandler
     {
         // ConnectionId, groupName
-        public static Dictionary<string, string> ConnectedUsers = new Dictionary<string, string>();
+        public static Dictionary<string, UserGroup> ConnectedUsers = new Dictionary<string, UserGroup>();
     }
 }

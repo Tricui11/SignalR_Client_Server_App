@@ -18,26 +18,26 @@ namespace SignalRChat.Hubs
 
         public async Task AddToAdminGroup()
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, "Admins");
-            UserHandler.ConnectedUsers[Context.ConnectionId] = "Admins";
+            await Groups.AddToGroupAsync(Context.ConnectionId, UserGroup.Admins.ToString());
+            UserHandler.ConnectedUsers[Context.ConnectionId] = UserGroup.Admins;
         }
 
         public async Task AddToGuestGroup()
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, "Guests");
-            UserHandler.ConnectedUsers[Context.ConnectionId] = "Guests";
+            await Groups.AddToGroupAsync(Context.ConnectionId, UserGroup.Guests.ToString());
+            UserHandler.ConnectedUsers[Context.ConnectionId] = UserGroup.Guests;
             await Clients.Group("Admins").SendAsync("newGuestConnected", Context.ConnectionId);
         }
 
         public override Task OnConnectedAsync()
         {
-            UserHandler.ConnectedUsers.Add(Context.ConnectionId, null);
+            UserHandler.ConnectedUsers.Add(Context.ConnectionId, UserGroup.None);
             return base.OnConnectedAsync();
         }
 
         public override Task OnDisconnectedAsync(Exception exception)
         {
-            if (UserHandler.ConnectedUsers[Context.ConnectionId] == "Guests")
+            if (UserHandler.ConnectedUsers[Context.ConnectionId] == UserGroup.Guests)
             {
                 Clients.Group("Admins").SendAsync("guestDisConnected", Context.ConnectionId);
             }
