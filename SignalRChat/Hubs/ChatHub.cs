@@ -20,13 +20,13 @@ namespace SignalRChat.Hubs
         public async Task AddToAdminGroup(string adminName)
         {
             await AddToGroupAsync(adminName, UserGroup.Admins);
-            await Clients.All.SendAsync("ReceiveMessage", $"{adminName} присоеденился к чату.", "Бот");
+            await Clients.All.SendAsync("ReceiveMessage", $"{adminName} присоединился к чату.", "Бот");
         }
 
         public async Task AddToGuestGroup(string guestName)
         {
             await AddToGroupAsync(guestName, UserGroup.Guests);
-            await Clients.All.SendAsync("ReceiveMessage", $"{guestName} присоеденился к чату.", "Бот");
+            await Clients.All.SendAsync("ReceiveMessage", $"{guestName} присоединился к чату.", "Бот");
             await Clients.Group(UserGroup.Admins.ToString()).SendAsync("newGuestConnected", Context.ConnectionId, guestName);
         }
 

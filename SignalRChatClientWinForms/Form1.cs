@@ -72,7 +72,7 @@ namespace SignalRChatClientWinForms
             e.DrawFocusRectangle();
             var color = Color.Black;
             string itemText = this.listBoxChat.Items[e.Index].ToString();
-            if (itemText.EndsWith(" присоеденился к чату."))
+            if (itemText.EndsWith(" присоединился к чату."))
             {
                 color = Color.Green;
             }

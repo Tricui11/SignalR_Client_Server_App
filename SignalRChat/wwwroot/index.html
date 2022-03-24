@@ -22,7 +22,7 @@
     <div>
         <label for="users">Подключенные пользователи:</label>
         <select name="users" id="users"></select>
-        <input type="button" id="disconnectBtn" value="Отключить" />
+        <input type="button" id="disconnectBtn" value="Отключить" disabled="disabled"/>
     </div>
     <script src="js/signalr/dist/browser/signalr.min.js"></script>
     <script>
@@ -31,42 +31,46 @@
         const userName = document.getElementById("userName");
         const userNameInputDone = function (e) {
             loginBtn.disabled = loggedIn || userName.value === "";
-            document.getElementById("sendBtn").disabled = message.value === "" || userName.value === "";
+            document.getElementById("sendBtn").disabled = message.value === "" || !loggedIn;
         }
         userName.addEventListener('input', userNameInputDone);
         userName.addEventListener('propertychange', userNameInputDone);
 
         const message = document.getElementById("message");
         const messageInputDone = function (e) {
-            document.getElementById("sendBtn").disabled = message.value === "" || userName.value === "";
+            document.getElementById("sendBtn").disabled = message.value === "" || !loggedIn;
         }
         message.addEventListener('input', messageInputDone);
         message.addEventListener('propertychange', messageInputDone);
+
+        const users = document.getElementById("users");
 
         const hubConnection = new signalR.HubConnectionBuilder()
             .withUrl("/chat")
             .build();
 
         hubConnection.on('ReceiveMessage', function (message, userName) {
-            let userNameElem = document.createElement("b");
-            userNameElem.appendChild(document.createTextNode(userName + ': '));
-            let userMessageElem = document.createElement("b");
-            userMessageElem.appendChild(document.createTextNode(message));
-            if (message.endsWith(" присоеденился к чату.")) {
-                userNameElem.style.color = "green";
-                userMessageElem.style.color = "green";
-            }
-            if (message.endsWith(" покинул чат.")) {
-                userNameElem.style.color = "red";
-                userMessageElem.style.color = "red";
-            }
+            if (loggedIn) {
+                let userNameElem = document.createElement("b");
+                userNameElem.appendChild(document.createTextNode(userName + ': '));
+                let userMessageElem = document.createElement("b");
+                userMessageElem.appendChild(document.createTextNode(message));
+                if (message.endsWith(" присоединился к чату.")) {
+                    userNameElem.style.color = "green";
+                    userMessageElem.style.color = "green";
+                }
+                if (message.endsWith(" покинул чат.")) {
+                    userNameElem.style.color = "red";
+                    userMessageElem.style.color = "red";
+                }
 
-            let elem = document.createElement("p");
-            elem.appendChild(userNameElem);
-            elem.appendChild(userMessageElem);
+                let elem = document.createElement("p");
+                elem.appendChild(userNameElem);
+                elem.appendChild(userMessageElem);
 
-            var firstElem = document.getElementById("chatroom").firstChild;
-            document.getElementById("chatroom").insertBefore(elem, firstElem);
+                var firstElem = document.getElementById("chatroom").firstChild;
+                document.getElementById("chatroom").insertBefore(elem, firstElem);
+            }
         });
 
         loginBtn.addEventListener("click", function (e) {
@@ -74,22 +78,25 @@
             loginBtn.disabled = true;
             userName.disabled = true;
             loggedIn = true;
+            document.getElementById("sendBtn").disabled = message.value === "" || !loggedIn;
             hubConnection.invoke("AddToAdminGroup", userName.value);
         });
 
         hubConnection.on('newGuestConnected', function (connectionId, guestName) {
-            var users = document.getElementById("users");
             var option = document.createElement("option");
             option.value = connectionId;
             option.text = guestName;
             users.add(option);
+            disconnectBtn.disabled = false;
         });
 
         hubConnection.on('guestDisConnected', function (connectionId) {
-            var users = document.getElementById("users");
             for (var i = 0; i < users.length; i++) {
                 if (users.options[i].value == connectionId) {
                     users.remove(i);
+                    if (users.options.length == 0) {
+                        disconnectBtn.disabled = true;
+                    }
                     break;
                 }
             }
@@ -101,7 +108,6 @@
         });
 
         document.getElementById("disconnectBtn").addEventListener("click", function (e) {
-            var users = document.getElementById("users");
             hubConnection.invoke("DisconnectUser", users.options[users.selectedIndex].value);
         });
 
