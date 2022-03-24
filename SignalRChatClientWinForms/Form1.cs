@@ -42,6 +42,7 @@ namespace SignalRChatClientWinForms
             try
             {
                 await connection.StartAsync();
+                await connection.InvokeAsync("AddToGuestGroup");
                 listBoxChat.Items.Add("Connection started");
                 btnConnect.Enabled = false;
                 btnSendMessage.Enabled = true;

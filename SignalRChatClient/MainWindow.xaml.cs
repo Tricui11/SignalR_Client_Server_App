@@ -45,6 +45,7 @@ namespace SignalRChatClient
             try
             {
                 await connection.StartAsync();
+                await connection.InvokeAsync("AddToGuestGroup");
                 messagesList.Items.Add("Connection started");
                 connectButton.IsEnabled = false;
                 sendButton.IsEnabled = true;

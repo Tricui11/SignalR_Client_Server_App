@@ -50,7 +50,7 @@
             hubConnection.invoke("AddToAdminGroup");
         });
 
-        hubConnection.on('newClientConnected', function (connectionId) {
+        hubConnection.on('newGuestConnected', function (connectionId) {
             var users = document.getElementById("users");
             var option = document.createElement("option");
             option.value = connectionId;
@@ -58,7 +58,7 @@
             users.add(option);
         });
 
-        hubConnection.on('clientDisConnected', function (connectionId) {
+        hubConnection.on('guestDisConnected', function (connectionId) {
             var users = document.getElementById("users");
             for (var i = 0; i < users.length; i++) {
                 if (users.options[i].value == connectionId) {
