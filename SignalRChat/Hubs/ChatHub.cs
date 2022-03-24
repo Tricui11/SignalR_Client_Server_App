@@ -16,9 +16,6 @@ namespace SignalRChat.Hubs
             await Clients.All.SendAsync("ReceiveMessage", message, userName);
         }
 
-        public async Task BroadcastToUser(string data) => await Clients.All.SendAsync("Broadcasttouser", data);
-
-
         public override Task OnConnectedAsync()
         {
             UserHandler.ConnectedIds.Add(Context.ConnectionId);
@@ -32,6 +29,5 @@ namespace SignalRChat.Hubs
             Clients.All.SendAsync("clientDisConnected", Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
         }
-
     }
 }

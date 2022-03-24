@@ -38,7 +38,7 @@ namespace SignalRChatClient
             {
                 this.Dispatcher.Invoke(() =>
                 {
-                    this.Close();
+                    Application.Current.Shutdown();
                 });
             });
 
