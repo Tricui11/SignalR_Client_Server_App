@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>SignalR test app.</title>
+</head>
+<body>
+    <div id="loginBlock">
+        Введите логин:<br />
+        <input id="userName" type="text" />
+        <input id="loginBtn" type="button" value="Войти" />
+    </div><br />
+
+    <div id="header"></div><br />
+
+    <div id="inputForm">
+        <input type="text" id="message" />
+        <input type="button" id="sendBtn" value="Отправить" />
+    </div>
+    <div id="chatroom"></div>
+
+    <div>
+        <label for="users">Подключенные пользователи:</label>
+        <select name="users" id="users"></select>
+        <input type="button" id="disconnectBtn" value="Отключить" />
+    </div>
+    <script src="js/signalr/dist/browser/signalr.min.js"></script>
+    <script>
+        const hubConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/chat")
+            .build();
+
+        let userName = '';
+
+        hubConnection.on('ReceiveMessage', function (message, userName) {
+            let userNameElem = document.createElement("b");
+            userNameElem.appendChild(document.createTextNode(userName + ': '));
+
+            let elem = document.createElement("p");
+            elem.appendChild(userNameElem);
+            elem.appendChild(document.createTextNode(message));
+
+            var firstElem = document.getElementById("chatroom").firstChild;
+            document.getElementById("chatroom").insertBefore(elem, firstElem);
+        });
+
+        document.getElementById("loginBtn").addEventListener("click", function (e) {
+            userName = document.getElementById("userName").value;
+            document.getElementById("header").innerHTML = '<h3>Welcome ' + userName + '</h3>';
+        });
+
+        hubConnection.on('newClientConnected', function (connectionId) {
+            var users = document.getElementById("users");
+            var option = document.createElement("option");
+            option.value = connectionId;
+            option.text = connectionId;
+            users.add(option);
+        });
+
+        hubConnection.on('clientDisConnected', function (connectionId) {
+            var users = document.getElementById("users");
+            for (var i = 0; i < users.length; i++) {
+                if (users.options[i].value == connectionId)
+                    users.remove(i);
+            }
+        });
+
+        document.getElementById("sendBtn").addEventListener("click", function (e) {
+            let message = document.getElementById("message").value;
+            hubConnection.invoke("SendMessage", message, userName);
+        });
+
+        document.getElementById("disconnectBtn").addEventListener("click", function (e) {
+            var users = document.getElementById("users");
+            hubConnection.invoke("DisconnectUser", users.options[users.selectedIndex].text);
+        });
+
+        hubConnection.start();
+    </script>
+</body>
+</html>
