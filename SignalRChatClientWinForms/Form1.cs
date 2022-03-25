@@ -9,47 +9,57 @@ namespace SignalRChatClientWinForms
     public partial class Form1 : Form
     {
         HubConnection connection;
-        bool connected;
+        bool loggedIn;
         public Form1()
         {
-            InitializeComponent();            
-
-            connection = new HubConnectionBuilder()
-                .WithUrl("http://localhost:53353/chat")
-                .Build();
-
-            connection.Closed += async (error) =>
-            {
-                await Task.Delay(new Random().Next(0, 5) * 1000);
-                await connection.StartAsync();
-            };
+            InitializeComponent();
         }
 
         private async void btnConnect_Click(object sender, EventArgs e)
         {
-            connection.On<string, string>("ReceiveMessage", (message, userName) =>
-            {
-                listBoxChat.Invoke((MethodInvoker)delegate
-                {
-                    var newMessage = $"{userName}: {message}";
-                    listBoxChat.Items.Add(newMessage);
-                });
-            });
-
-            connection.On<string>("Disconnect", (userID) =>
-            {
-                Invoke((MethodInvoker)delegate { Application.Exit(); });
-            });
-
             try
             {
+                connection = new HubConnectionBuilder().WithUrl("http://localhost:53353/chat").Build();
+                connection.Closed += async (error) =>
+                {
+                    await Task.Delay(new Random().Next(0, 5) * 1000);
+                    await connection.StartAsync();
+                };
+
+                connection.On<string, string>("ReceiveMessage", (message, userName) =>
+                {
+                    listBoxChat.Invoke((MethodInvoker)delegate
+                    {
+                        var newMessage = $"{userName}: {message}";
+                        listBoxChat.Items.Add(newMessage);
+                    });
+                });
+
+                connection.On("Disconnect", () =>
+                {
+                    Invoke((MethodInvoker)delegate { Application.Exit(); });
+                });
+
+                connection.On("NickNameBusy", () =>
+                {
+                    Invoke((MethodInvoker)async delegate {
+                        MessageBox.Show("Данный ник занят.");
+                        loggedIn = false;
+                        await connection.DisposeAsync();
+                        txtBoxUser.Enabled = true;
+                        txtBoxUser.Text = string.Empty;
+                        btnSendMessage.Enabled = false;
+                        listBoxChat.Items.Add("Connection closed");
+                    });
+                });
+
                 await connection.StartAsync();
                 await connection.InvokeAsync("AddToGuestGroup", txtBoxUser.Text);
                 listBoxChat.Items.Add("Connection started");
-                connected = true;
-                btnConnect.Enabled = !connected;
+                loggedIn = true;
                 txtBoxUser.Enabled = false;
-                btnSendMessage.Enabled = connected && !string.IsNullOrWhiteSpace(txtBoxMessage.Text);
+                btnConnect.Enabled = false;
+                btnSendMessage.Enabled = !string.IsNullOrWhiteSpace(txtBoxMessage.Text);
             }
             catch (Exception ex)
             {
@@ -89,12 +99,12 @@ namespace SignalRChatClientWinForms
 
         private void txtBoxUser_TextChanged(object sender, EventArgs e)
         {
-            btnConnect.Enabled = !string.IsNullOrEmpty(txtBoxUser.Text) && !connected;
+            btnConnect.Enabled = !loggedIn && !string.IsNullOrEmpty(txtBoxUser.Text);
         }
         
         private void txtBoxMessage_TextChanged(object sender, EventArgs e)
         {
-            btnSendMessage.Enabled = connected && !string.IsNullOrWhiteSpace(txtBoxMessage.Text);
+            btnSendMessage.Enabled = loggedIn && !string.IsNullOrEmpty(txtBoxUser.Text) && !string.IsNullOrWhiteSpace(txtBoxMessage.Text);
         }
     }
 }

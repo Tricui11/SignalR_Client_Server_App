@@ -73,7 +73,7 @@
             }
         });
 
-        loginBtn.addEventListener("click", function (e) {
+        loginBtn.addEventListener("click", function () {
             document.getElementById("header").innerHTML = '<h3>Welcome ' + userName.value + '</h3>';
             loginBtn.disabled = true;
             userName.disabled = true;
@@ -100,6 +100,10 @@
                     break;
                 }
             }
+        });
+
+        hubConnection.on('NickNameBusy', function () {
+            alert("Данный ник занят.");
         });
 
         document.getElementById("sendBtn").addEventListener("click", function (e) {

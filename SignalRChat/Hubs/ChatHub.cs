@@ -9,7 +9,7 @@ namespace SignalRChat.Hubs
     {
         public async Task DisconnectUser(string userID)
         {
-            await Clients.Client(userID).SendAsync("Disconnect", userID);
+            await Clients.Client(userID).SendAsync("Disconnect");
         }
 
         public async Task SendMessage(string message, string userName)
@@ -19,17 +19,29 @@ namespace SignalRChat.Hubs
 
         public async Task AddToAdminGroup(string adminName)
         {
+            if (!UserHandler.CanAddUserName(adminName))
+            {
+                await Clients.Client(Context.ConnectionId).SendAsync("NickNameBusy");
+                return;
+            }
+
             await AddToGroupAsync(adminName, UserGroup.Admins);
             await Clients.All.SendAsync("ReceiveMessage", $"{adminName} присоединился к чату.", "Бот");
         }
 
         public async Task AddToGuestGroup(string guestName)
         {
+            if (!UserHandler.CanAddUserName(guestName))
+            {
+                await Clients.Client(Context.ConnectionId).SendAsync("NickNameBusy");
+                return;
+            }
+
             await AddToGroupAsync(guestName, UserGroup.Guests);
             await Clients.All.SendAsync("ReceiveMessage", $"{guestName} присоединился к чату.", "Бот");
             await Clients.Group(UserGroup.Admins.ToString()).SendAsync("newGuestConnected", Context.ConnectionId, guestName);
         }
-
+        
         private async Task AddToGroupAsync(string userName, UserGroup userGroup)
         {
             var chatUser = UserHandler.FindByConnectionId(Context.ConnectionId);
@@ -40,7 +52,7 @@ namespace SignalRChat.Hubs
 
         public override Task OnConnectedAsync()
         {
-            var newChatUser = new ChatUser() { ConnectionId = Context.ConnectionId , UserGroup = UserGroup.None};
+            var newChatUser = new ChatUser() { ConnectionId = Context.ConnectionId, UserGroup = UserGroup.None};
             UserHandler.ConnectedUsers.Add(newChatUser);
             return base.OnConnectedAsync();
         }
@@ -52,7 +64,10 @@ namespace SignalRChat.Hubs
             {
                 Clients.Group(UserGroup.Admins.ToString()).SendAsync("guestDisConnected", Context.ConnectionId);
             }
-            Clients.All.SendAsync("ReceiveMessage", $"{chatUser.Name} покинул чат.", "Бот");
+            if (chatUser.UserGroup != UserGroup.None)
+            {
+                Clients.All.SendAsync("ReceiveMessage", $"{chatUser.Name} покинул чат.", "Бот");
+            }
             UserHandler.ConnectedUsers.Remove(chatUser);
 
             return base.OnDisconnectedAsync(exception);
