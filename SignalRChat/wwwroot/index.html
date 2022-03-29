@@ -45,9 +45,7 @@
 
         const users = document.getElementById("users");
 
-        const hubConnection = new signalR.HubConnectionBuilder()
-            .withUrl("/chat")
-            .build();
+        const hubConnection = new signalR.HubConnectionBuilder().withUrl("/chat").build();
 
         hubConnection.on('ReceiveMessage', function (message, userName) {
             if (loggedIn) {
@@ -103,7 +101,10 @@
         });
 
         hubConnection.on('NickNameBusy', function () {
-            alert("Данный ник занят.");
+            document.getElementById("header").innerHTML = "<span style='color: red;'><h3>Данный ник занят.</h3></span>";
+            loginBtn.disabled = false;
+            userName.disabled = false;
+            loggedIn = false;
         });
 
         document.getElementById("sendBtn").addEventListener("click", function (e) {
